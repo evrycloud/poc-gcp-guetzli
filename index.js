@@ -3,7 +3,9 @@ const Storage = require('@google-cloud/storage');
 
 const compress = require('./src/compress');
 
-const bucketName = 'uncompressed-images-demo';
+const downloadBucket = 'uncompressed-images-demo';
+
+const uploadBucket = 'compressed-images-demo';
 
 const storage = Storage();
 
@@ -21,18 +23,22 @@ sub.on('message', async message => {
     };
 
     try {
-        console.log(` [*] downloading ${name} ...`);
+        console.log(` [*] Downloading ${name} ...`);
 
-        await storage.bucket(bucketName).file(name).download(options);
+        await storage.bucket(downloadBucket).file(name).download(options);
 
         // Do not acknowledge the message before we know we got the file
         message.ack();
 
-        console.log(` [*] compressing ${name} ...`);
+        console.log(` [*] Compressing ${name} ...`);
 
         await compress(name);
 
-        console.log(` [*] Compression finished ... waiting ...`);
+        console.log(` [*] Uploading file to bucket ...`);
+
+        await storage.bucket(uploadBucket).upload(`compressed/${name}`);
+
+        console.log(` [*] Finished ... waiting for next image ...`);
     } catch (e) {
         console.error(' [!] ERROR \n', e);
     }
