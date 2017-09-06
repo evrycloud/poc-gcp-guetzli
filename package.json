@@ -12,7 +12,5 @@
   "dependencies": {
     "@google-cloud/pubsub": "^0.14.0",
     "@google-cloud/storage": "^1.2.1",
-    "koa": "^2.3.0",
-    "koa-body": "^2.3.0"
   }
 }

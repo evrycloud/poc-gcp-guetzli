@@ -21,18 +21,18 @@ sub.on('message', async message => {
     };
 
     try {
-        message.ack();
-
         console.log(` [*] downloading ${name} ...`);
 
         await storage.bucket(bucketName).file(name).download(options);
+
+        // Do not acknowledge the message before we know we got the file
+        message.ack();
 
         console.log(` [*] compressing ${name} ...`);
 
         await compress(name);
 
-        console.log(` [*] compressing ${name} ...`);
-
+        console.log(` [*] Compression finished ... waiting ...`);
     } catch (e) {
         console.error(' [!] ERROR \n', e);
     }
