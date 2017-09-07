@@ -1,6 +1,6 @@
 FROM node:8.3.0-alpine
 
-RUN apk add --update alpine-sdk git libpng-dev
+RUN apk add --update alpine-sdk git libpng-dev libc6-compat
 
 RUN git clone http://github.com/google/guetzli.git/
 
