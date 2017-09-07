@@ -1,3 +1,4 @@
+const fs = require('fs');
 const PubSub = require('@google-cloud/pubsub');
 const Storage = require('@google-cloud/storage');
 
@@ -39,6 +40,11 @@ async function message(msg) {
         console.log(` [*] Uploading file to bucket ...`);
 
         await storage.bucket(UPLOAD_BUCKET).upload(`compressed/${name}`);
+
+        console.log(` [*] Clean up ...`);
+
+        fs.unlink(`uncompressed/${name}`, () => {});
+        fs.unlink(`compressed/${name}`, () => {});
 
         console.log(` [*] Finished ... waiting for next image ...`);
     } catch (err) {
