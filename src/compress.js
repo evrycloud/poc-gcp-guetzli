@@ -13,7 +13,6 @@ function compress(image) {
 
         guetzli.on('close', exitCode => resolve(exitCode === 0 ? output : ''));
     });
-
 }
 
 module.exports = compress;
