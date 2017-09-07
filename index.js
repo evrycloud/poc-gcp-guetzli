@@ -3,18 +3,21 @@ const Storage = require('@google-cloud/storage');
 
 const compress = require('./src/compress');
 
-const downloadBucket = 'uncompressed-images-demo';
-
-const uploadBucket = 'compressed-images-demo';
+const {
+    DOWNLOAD_BUCKET = 'uncompressed-images-demo',
+    UPLOAD_BUCKET = 'compressed-images-demo',
+    PROJECT_ID = 'guetzli-179112',
+    SUBSCRIPTION = 'new-image-sub'
+} = process.env;
 
 const storage = Storage();
 
-const pubsub = PubSub({ projectId: 'guetzli-179112' });
+const pubsub = PubSub({ projectId: PROJECT_ID });
 
-const sub = pubsub.subscription('new-image-sub');
+const subscribe = pubsub.subscription(SUBSCRIPTION);
 
-sub.on('message', async message => {
-    const res = JSON.parse(message.data.toString('utf8'));
+async function message(msg) {
+    const res = JSON.parse(msg.data.toString('utf8'));
 
     const { name } = res;
 
@@ -23,12 +26,11 @@ sub.on('message', async message => {
     };
 
     try {
+        msg.ack();
+
         console.log(` [*] Downloading ${name} ...`);
 
-        await storage.bucket(downloadBucket).file(name).download(options);
-
-        // Do not acknowledge the message before we know we got the file
-        message.ack();
+        await storage.bucket(DOWNLOAD_BUCKET).file(name).download(options);
 
         console.log(` [*] Compressing ${name} ...`);
 
@@ -36,10 +38,12 @@ sub.on('message', async message => {
 
         console.log(` [*] Uploading file to bucket ...`);
 
-        await storage.bucket(uploadBucket).upload(`compressed/${name}`);
+        await storage.bucket(UPLOAD_BUCKET).upload(`compressed/${name}`);
 
         console.log(` [*] Finished ... waiting for next image ...`);
-    } catch (e) {
-        console.error(' [!] ERROR \n', e);
+    } catch (err) {
+        console.error(' [!] ERROR \n', err);
     }
-});
+}
+
+subscribe.on('message', message);
