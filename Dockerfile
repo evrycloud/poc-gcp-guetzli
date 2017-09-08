@@ -6,7 +6,7 @@ RUN git clone http://github.com/google/guetzli.git/
 
 RUN cd guetzli && make
 
-RUN mv /guetzli/bin/Release/guetzli /usr/local/bin/guetzli
+RUN mv /guetzli/bin/Release/guetzli /usr/local/bin/guetzli && rm -rf /guetzli
 
 WORKDIR /src
 
