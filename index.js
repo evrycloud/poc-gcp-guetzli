@@ -8,7 +8,8 @@ const {
     DOWNLOAD_BUCKET = 'uncompressed-images-demo',
     UPLOAD_BUCKET = 'compressed-images-demo',
     PROJECT_ID = 'guetzli-179112',
-    SUBSCRIPTION = 'new-image-sub'
+    SUBSCRIPTION = 'new-image-sub',
+    PUBLISH_TOPIC = 'compressed-image',
 } = process.env;
 
 const storage = Storage();
@@ -16,6 +17,8 @@ const storage = Storage();
 const pubsub = PubSub({ projectId: PROJECT_ID });
 
 const subscribe = pubsub.subscription(SUBSCRIPTION);
+
+const publisher = pubsub.topic(PUBLISH_TOPIC).publisher();
 
 async function message(msg) {
     const res = JSON.parse(msg.data.toString('utf8'));
@@ -46,8 +49,18 @@ async function message(msg) {
         fs.unlink(`uncompressed/${name}`, () => {});
         fs.unlink(`compressed/${name}`, () => {});
 
+        await publisher.publish(new Buffer(JSON.stringify({
+            name,
+            status: 'finished'
+        })));
+
         console.log(` [*] Finished ... waiting for next image ...`);
     } catch (err) {
+        await publisher.publish(new Buffer(JSON.stringify({
+            name,
+            status: 'failed'
+        })));
+
         console.error(' [!] ERROR \n', err);
     }
 }
