@@ -32,6 +32,11 @@ async function message(msg) {
     try {
         msg.ack();
 
+        await publisher.publish(new Buffer(JSON.stringify({
+            name,
+            status: 'compressing'
+        })));
+
         console.log(` [*] Downloading ${name} ...`);
 
         await storage.bucket(DOWNLOAD_BUCKET).file(name).download(options);
