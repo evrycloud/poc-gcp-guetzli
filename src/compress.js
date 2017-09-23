@@ -1,8 +1,8 @@
 const { spawn } = require('child_process');
 
 function compress(image) {
-    const output = ['compressed/', image].join('');
-    const input = ['uncompressed/', image].join('');
+    const output = `compressed/${image}`;
+    const input = `uncompressed/${image}`;
 
     const guetzli = spawn('guetzli', ['--quality', 85, input, output]);
 
