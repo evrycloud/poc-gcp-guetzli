@@ -1,24 +1,17 @@
 const fs = require('fs');
+const config = require('config');
 const PubSub = require('@google-cloud/pubsub');
 const Storage = require('@google-cloud/storage');
 
 const compress = require('./src/compress');
 
-const {
-    DOWNLOAD_BUCKET = 'uncompressed-images-demo',
-    UPLOAD_BUCKET = 'compressed-images-demo',
-    PROJECT_ID = 'guetzli-179112',
-    SUBSCRIPTION = 'new-image-sub',
-    PUBLISH_TOPIC = 'compressed-image',
-} = process.env;
-
 const storage = Storage();
 
-const pubsub = PubSub({ projectId: PROJECT_ID });
+const pubsub = PubSub({ projectId: config.get('project.id') });
 
-const subscribe = pubsub.subscription(SUBSCRIPTION);
+const subscribe = pubsub.subscription(config.get('pubsub.subscription.topic'));
 
-const publisher = pubsub.topic(PUBLISH_TOPIC).publisher();
+const publisher = pubsub.topic(config.get('pubsub.publish.topic')).publisher();
 
 async function message(msg) {
     const res = JSON.parse(msg.data.toString('utf8'));
@@ -39,7 +32,7 @@ async function message(msg) {
 
         console.log(` [*] Downloading ${name} ...`);
 
-        await storage.bucket(DOWNLOAD_BUCKET).file(name).download(options);
+        await storage.bucket(config.get('bucket.uncompressed')).file(name).download(options);
 
         console.log(` [*] Compressing ${name} ...`);
 
@@ -47,7 +40,7 @@ async function message(msg) {
 
         console.log(` [*] Uploading file to bucket ...`);
 
-        await storage.bucket(UPLOAD_BUCKET).upload(`compressed/${name}`);
+        await storage.bucket(config.get('bucket.compressed')).upload(`compressed/${name}`);
 
         console.log(` [*] Clean up ...`);
 
